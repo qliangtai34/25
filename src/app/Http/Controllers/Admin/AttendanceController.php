@@ -7,6 +7,7 @@ use App\Models\AttendanceBreak;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Http\Requests\AdminAttendanceUpdateRequest;
 
 class AttendanceController extends Controller
 {
@@ -64,36 +65,31 @@ public function show($id)
     return view('admin.attendances.show', compact('attendance'));
 }
 
-public function update(Request $request, $id)
+public function update(AdminAttendanceUpdateRequest $request, $id)
 {
     $attendance = Attendance::with('breaks')->findOrFail($id);
 
-    // 勤怠（出勤・退勤・備考）
     $attendance->update([
         'clock_in'  => $request->clock_in,
         'clock_out' => $request->clock_out,
         'note'      => $request->note,
     ]);
 
-    // 休憩（複数対応）
-    if ($request->has('breaks')) {
-        foreach ($request->breaks as $breakId => $breakData) {
+    foreach ($request->breaks ?? [] as $breakId => $breakData) {
 
-            // 空送信防止（これが超重要）
-            if (empty($breakData['break_start']) || empty($breakData['break_end'])) {
-                continue;
-            }
-
-            AttendanceBreak::where('id', $breakId)
-                ->where('attendance_id', $attendance->id)
-                ->update([
-                    'break_start' => $breakData['break_start'],
-                    'break_end'   => $breakData['break_end'],
-                ]);
+        if (empty($breakData['break_start']) || empty($breakData['break_end'])) {
+            continue;
         }
+
+        AttendanceBreak::where('id', $breakId)
+            ->where('attendance_id', $attendance->id)
+            ->update([
+                'break_start' => $breakData['break_start'],
+                'break_end'   => $breakData['break_end'],
+            ]);
     }
 
-    return redirect()->back()->with('success', '勤怠を修正しました。');
+    return back()->with('success', '勤怠を修正しました。');
 }
 
 }
