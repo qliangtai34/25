@@ -8,6 +8,7 @@ use App\Models\AttendanceBreak;
 use App\Models\AttendanceCorrection;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\AttendanceCorrectionRequest;
 
 class AttendanceController extends Controller
 {
@@ -163,7 +164,7 @@ class AttendanceController extends Controller
 
 
 
- public function requestCorrection(Request $request, $id)
+ public function requestCorrection(AttendanceCorrectionRequest $request, $id)
 {
     $attendance = Attendance::findOrFail($id);
 
@@ -172,7 +173,7 @@ class AttendanceController extends Controller
         'attendance_id' => $attendance->id,
         'new_clock_in'  => $request->new_clock_in,
         'new_clock_out' => $request->new_clock_out,
-        'new_note'      => $request->new_note,
+        'new_note'      => $request->remark,
         'status'        => 'pending',
     ]);
 
